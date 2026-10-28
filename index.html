@@ -1,0 +1,1454 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>استوديو 3D التفاعلي المتكامل | 3D Creative Studio</title>
+    <!-- خطوط جوجل وأيقونات FontAwesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-main: #0b0f19;
+            --panel-bg: rgba(17, 24, 39, 0.78);
+            --panel-border: rgba(255, 255, 255, 0.1);
+            --panel-hover: rgba(255, 255, 255, 0.06);
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --accent-glow: rgba(59, 130, 246, 0.35);
+            --danger: #ef4444;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Cairo', system-ui, -apple-system, sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .top-nav {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .logo {
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--panel-bg);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid var(--panel-border);
+            padding: 10px 18px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-glass);
+            font-size: 1.15rem;
+            font-weight: 700;
+        }
+
+        .logo-icon {
+            color: var(--accent);
+            font-size: 1.3rem;
+            filter: drop-shadow(0 0 8px var(--accent-glow));
+        }
+
+        .quick-actions {
+            pointer-events: auto;
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-btn {
+            background: var(--panel-bg);
+            backdrop-filter: blur(14px);
+            border: 1px solid var(--panel-border);
+            color: var(--text-primary);
+            padding: 9px 16px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.25s ease;
+            box-shadow: var(--shadow-glass);
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .nav-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .nav-btn.danger:hover {
+            background: var(--danger);
+            border-color: var(--danger);
+            color: #fff;
+        }
+
+        .sidebar {
+            position: absolute;
+            top: 80px;
+            right: 20px;
+            width: 370px;
+            max-height: calc(100vh - 150px);
+            background: var(--panel-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--panel-border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-glass);
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .tabs-header {
+            display: flex;
+            background: rgba(0, 0, 0, 0.25);
+            border-bottom: 1px solid var(--panel-border);
+        }
+
+        .tab-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 12px 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+            background: var(--panel-hover);
+        }
+
+        .tab-btn.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+            background: rgba(59, 130, 246, 0.08);
+            font-weight: 700;
+        }
+
+        .tabs-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .tabs-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .tabs-content::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+        }
+
+        .tab-pane {
+            display: none;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .tab-pane.active {
+            display: flex;
+        }
+
+        .pane-title {
+            font-size: 1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 8px;
+        }
+
+        .shapes-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .shape-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--panel-border);
+            color: var(--text-primary);
+            padding: 14px 10px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .shape-card i {
+            font-size: 1.5rem;
+            color: var(--accent);
+            transition: transform 0.2s;
+        }
+
+        .shape-card:hover {
+            background: rgba(59, 130, 246, 0.15);
+            border-color: var(--accent);
+            transform: translateY(-3px);
+        }
+
+        .shape-card:hover i {
+            transform: scale(1.15);
+        }
+
+        .info-card {
+            background: rgba(59, 130, 246, 0.08);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .info-card i {
+            color: var(--accent);
+            margin-top: 2px;
+        }
+
+        .control-box {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--panel-border);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .section-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .gizmo-mode-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .mode-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--panel-border);
+            color: var(--text-secondary);
+            padding: 8px 4px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s;
+        }
+
+        .mode-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .color-picker-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        input[type="color"] {
+            -webkit-appearance: none;
+            border: none;
+            width: 44px;
+            height: 38px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            background: transparent;
+        }
+
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+
+        input[type="color"]::-webkit-color-swatch {
+            border: 1px solid var(--panel-border);
+            border-radius: var(--radius-sm);
+        }
+
+        .hex-input {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--panel-border);
+            color: var(--text-primary);
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            direction: ltr;
+            text-align: center;
+        }
+
+        .color-palette {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+            margin-top: 4px;
+        }
+
+        .swatch {
+            height: 24px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transition: transform 0.15s;
+        }
+
+        .swatch:hover {
+            transform: scale(1.15);
+        }
+
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            box-shadow: 0 0 6px var(--accent);
+            transition: transform 0.1s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .switch-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 42px;
+            height: 22px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider.round {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(255, 255, 255, 0.15);
+            transition: .3s;
+            border-radius: 22px;
+        }
+
+        .slider.round:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider.round {
+            background-color: var(--accent);
+        }
+
+        input:checked + .slider.round:before {
+            transform: translateX(20px);
+        }
+
+        .coords-block {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
+        }
+
+        .coords-block:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .coord-title {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .coord-inputs {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+        }
+
+        .coord-field {
+            display: flex;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--panel-border);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+        }
+
+        .coord-field label {
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            padding: 6px 8px;
+            font-weight: 700;
+        }
+
+        .coord-field input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-size: 0.8rem;
+            padding: 6px 4px;
+            text-align: center;
+            outline: none;
+            direction: ltr;
+        }
+
+        .selected-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--panel-border);
+        }
+
+        .badge {
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid var(--accent);
+            color: #60a5fa;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .action-icons {
+            display: flex;
+            gap: 6px;
+        }
+
+        .mini-btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--panel-border);
+            color: var(--text-primary);
+            padding: 5px 10px;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s;
+        }
+
+        .mini-btn:hover {
+            background: var(--accent);
+        }
+
+        .mini-btn.danger:hover {
+            background: var(--danger);
+            border-color: var(--danger);
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+            gap: 12px;
+        }
+
+        .empty-state i {
+            font-size: 2.5rem;
+            color: var(--text-muted);
+        }
+
+        .empty-state p {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .empty-state span {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .objects-list-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .obj-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--panel-border);
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .obj-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .obj-item.selected {
+            background: rgba(59, 130, 246, 0.15);
+            border-color: var(--accent);
+        }
+
+        .obj-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85rem;
+        }
+
+        .obj-color-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .obj-del-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px 6px;
+            border-radius: 4px;
+            transition: color 0.2s;
+        }
+
+        .obj-del-btn:hover {
+            color: var(--danger);
+        }
+
+        .bottom-hints {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            display: flex;
+            gap: 8px;
+            z-index: 10;
+            pointer-events: none;
+            flex-wrap: wrap;
+        }
+
+        .hint-pill {
+            background: var(--panel-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--panel-border);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: var(--shadow-glass);
+        }
+
+        .hint-pill i {
+            color: var(--accent);
+        }
+
+        .kbd-hint kbd {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #fff;
+            font-family: monospace;
+            font-weight: 700;
+        }
+
+        #toast-container {
+            position: fixed;
+            bottom: 30px;
+            right: 50%;
+            transform: translateX(50%);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: rgba(17, 24, 39, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(16px);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: var(--radius-md);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: toastIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+        }
+
+        .toast.success i { color: #10b981; }
+        .toast.danger i { color: #ef4444; }
+        .toast.info i { color: #3b82f6; }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.9); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: calc(100vw - 40px);
+                right: 20px;
+                top: auto;
+                bottom: 20px;
+                max-height: 50vh;
+            }
+            .bottom-hints {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+
+    <header class="top-nav">
+        <div class="logo">
+            <i class="fa-solid fa-cube logo-icon"></i>
+            <span>استوديو <strong>3D</strong></span>
+        </div>
+        <div class="quick-actions">
+            <button id="btn-toggle-grid" class="nav-btn active" title="إظهار / إخفاء الشبكة الأرضية">
+                <i class="fa-solid fa-border-all"></i> <span>الشبكة</span>
+            </button>
+            <button id="btn-auto-rotate" class="nav-btn" title="دوران تلقائي للكاميرا">
+                <i class="fa-solid fa-arrows-rotate"></i> <span>دوران تلقائي</span>
+            </button>
+            <button id="btn-reset-cam" class="nav-btn" title="إعادة ضبط الكاميرا">
+                <i class="fa-solid fa-video"></i> <span>إعادة الكاميرا</span>
+            </button>
+            <button id="btn-screenshot" class="nav-btn" title="التقاط وحفظ صورة">
+                <i class="fa-solid fa-camera"></i> <span>تصوير المشهد</span>
+            </button>
+            <button id="btn-clear-scene" class="nav-btn danger" title="حذف جميع المجسمات">
+                <i class="fa-solid fa-trash-can"></i> <span>تفريغ المشهد</span>
+            </button>
+        </div>
+    </header>
+
+    <aside class="sidebar" id="sidebar">
+        <div class="tabs-header">
+            <button class="tab-btn active" data-tab="tab-add">
+                <i class="fa-solid fa-plus"></i> إضافة
+            </button>
+            <button class="tab-btn" data-tab="tab-edit" id="tab-edit-btn">
+                <i class="fa-solid fa-sliders"></i> تعديل
+            </button>
+            <button class="tab-btn" data-tab="tab-scene">
+                <i class="fa-solid fa-sun"></i> البيئة
+            </button>
+            <button class="tab-btn" data-tab="tab-objects">
+                <i class="fa-solid fa-layer-group"></i> العناصر (<span id="obj-count">0</span>)
+            </button>
+        </div>
+
+        <div class="tabs-content">
+            <!-- تبويب 1: إضافة مجسمات -->
+            <section class="tab-pane active" id="tab-add">
+                <h3 class="pane-title"><i class="fa-solid fa-shapes"></i> اختر مجسمًا لإضافته</h3>
+                <div class="shapes-grid">
+                    <button class="shape-card" data-shape="box"><i class="fa-solid fa-cube"></i><span>مكعب</span></button>
+                    <button class="shape-card" data-shape="sphere"><i class="fa-solid fa-globe"></i><span>كرة</span></button>
+                    <button class="shape-card" data-shape="cylinder"><i class="fa-solid fa-database"></i><span>أسطوانة</span></button>
+                    <button class="shape-card" data-shape="cone"><i class="fa-solid fa-traffic-light"></i><span>مخروط</span></button>
+                    <button class="shape-card" data-shape="torus"><i class="fa-solid fa-circle-notch"></i><span>حلقة (Torus)</span></button>
+                    <button class="shape-card" data-shape="crystal"><i class="fa-solid fa-gem"></i><span>بلورة</span></button>
+                    <button class="shape-card" data-shape="capsule"><i class="fa-solid fa-capsules"></i><span>كبسولة</span></button>
+                    <button class="shape-card" data-shape="plane"><i class="fa-regular fa-square"></i><span>مسطح</span></button>
+                </div>
+                <div class="info-card">
+                    <i class="fa-solid fa-lightbulb"></i>
+                    <p>انقر على أي مجسم في المشهد لتحديده وتغيير لونه ومكانه وحجمه فوراً!</p>
+                </div>
+            </section>
+
+            <!-- تبويب 2: التعديل -->
+            <section class="tab-pane" id="tab-edit">
+                <div id="no-selection-message" class="empty-state">
+                    <i class="fa-solid fa-hand-pointer"></i>
+                    <p>لم يتم تحديد أي مجسم!</p>
+                    <span>انقر على أحد المجسمات في الفضاء ثلاثي الأبعاد للتعديل عليه.</span>
+                </div>
+
+                <div id="selection-controls" class="controls-group hidden">
+                    <div class="selected-header">
+                        <div class="badge" id="selected-type-badge">مكعب</div>
+                        <div class="action-icons">
+                            <button id="btn-duplicate-selected" class="mini-btn" title="تكرار المجسم"><i class="fa-solid fa-clone"></i> تكرار</button>
+                            <button id="btn-delete-selected" class="mini-btn danger" title="حذف المجسم"><i class="fa-solid fa-trash"></i> حذف</button>
+                        </div>
+                    </div>
+
+                    <div class="control-box">
+                        <label class="section-label"><i class="fa-solid fa-up-down-left-right"></i> أداة التحويل (Gizmo)</label>
+                        <div class="gizmo-mode-buttons">
+                            <button class="mode-btn active" data-mode="translate"><i class="fa-solid fa-arrows-up-down-left-right"></i> تحريك (W)</button>
+                            <button class="mode-btn" data-mode="rotate"><i class="fa-solid fa-rotate"></i> تدوير (E)</button>
+                            <button class="mode-btn" data-mode="scale"><i class="fa-solid fa-maximize"></i> حجم (R)</button>
+                        </div>
+                    </div>
+
+                    <div class="control-box">
+                        <label class="section-label"><i class="fa-solid fa-palette"></i> لون المجسم</label>
+                        <div class="color-picker-row">
+                            <input type="color" id="object-color" value="#3b82f6">
+                            <input type="text" id="object-color-hex" value="#3b82f6" class="hex-input">
+                        </div>
+                        <div class="color-palette">
+                            <span class="swatch" style="background:#ef4444" data-color="#ef4444"></span>
+                            <span class="swatch" style="background:#f97316" data-color="#f97316"></span>
+                            <span class="swatch" style="background:#eab308" data-color="#eab308"></span>
+                            <span class="swatch" style="background:#22c55e" data-color="#22c55e"></span>
+                            <span class="swatch" style="background:#06b6d4" data-color="#06b6d4"></span>
+                            <span class="swatch" style="background:#3b82f6" data-color="#3b82f6"></span>
+                            <span class="swatch" style="background:#8b5cf6" data-color="#8b5cf6"></span>
+                            <span class="swatch" style="background:#ec4899" data-color="#ec4899"></span>
+                            <span class="swatch" style="background:#ffffff" data-color="#ffffff"></span>
+                            <span class="swatch" style="background:#1f2937" data-color="#1f2937"></span>
+                        </div>
+                    </div>
+
+                    <div class="control-box">
+                        <label class="section-label"><i class="fa-solid fa-wand-magic-sparkles"></i> خصائص الخامة</label>
+                        <div class="slider-group">
+                            <div class="slider-label"><span>المعدنية (Metalness)</span><span id="val-metalness">0.1</span></div>
+                            <input type="range" id="prop-metalness" min="0" max="1" step="0.05" value="0.1">
+                        </div>
+                        <div class="slider-group">
+                            <div class="slider-label"><span>الخشونة (Roughness)</span><span id="val-roughness">0.4</span></div>
+                            <input type="range" id="prop-roughness" min="0" max="1" step="0.05" value="0.4">
+                        </div>
+                        <div class="slider-group">
+                            <div class="slider-label"><span>الشفافية (Opacity)</span><span id="val-opacity">1.0</span></div>
+                            <input type="range" id="prop-opacity" min="0.1" max="1" step="0.05" value="1.0">
+                        </div>
+                        <div class="switch-row">
+                            <span>نمط الهيكل الشبكي (Wireframe)</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="prop-wireframe">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="control-box">
+                        <label class="section-label"><i class="fa-solid fa-ruler-combined"></i> الإحداثيات والمقاسات</label>
+                        <div class="coords-block">
+                            <span class="coord-title">الموضع (Position):</span>
+                            <div class="coord-inputs">
+                                <div class="coord-field"><label>X</label><input type="number" id="pos-x" step="0.5"></div>
+                                <div class="coord-field"><label>Y</label><input type="number" id="pos-y" step="0.5"></div>
+                                <div class="coord-field"><label>Z</label><input type="number" id="pos-z" step="0.5"></div>
+                            </div>
+                        </div>
+                        <div class="coords-block">
+                            <span class="coord-title">الحجم (Scale):</span>
+                            <div class="coord-inputs">
+                                <div class="coord-field"><label>X</label><input type="number" id="scale-x" step="0.2" min="0.1"></div>
+                                <div class="coord-field"><label>Y</label><input type="number" id="scale-y" step="0.2" min="0.1"></div>
+                                <div class="coord-field"><label>Z</label><input type="number" id="scale-z" step="0.2" min="0.1"></div>
+                            </div>
+                        </div>
+                        <div class="coords-block">
+                            <span class="coord-title">التدوير (درجة Rotation):</span>
+                            <div class="coord-inputs">
+                                <div class="coord-field"><label>X</label><input type="number" id="rot-x" step="15"></div>
+                                <div class="coord-field"><label>Y</label><input type="number" id="rot-y" step="15"></div>
+                                <div class="coord-field"><label>Z</label><input type="number" id="rot-z" step="15"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- تبويب 3: البيئة -->
+            <section class="tab-pane" id="tab-scene">
+                <h3 class="pane-title"><i class="fa-solid fa-cloud-sun"></i> إعدادات البيئة</h3>
+                <div class="control-box">
+                    <label class="section-label"><i class="fa-solid fa-fill-drip"></i> لون الخلفية</label>
+                    <div class="color-picker-row">
+                        <input type="color" id="scene-bg-color" value="#0f172a">
+                        <input type="text" id="scene-bg-hex" value="#0f172a" class="hex-input">
+                    </div>
+                </div>
+                <div class="control-box">
+                    <label class="section-label"><i class="fa-solid fa-sun"></i> الإضاءة</label>
+                    <div class="slider-group">
+                        <div class="slider-label"><span>إضاءة عامة (Ambient)</span><span id="val-ambient-light">0.6</span></div>
+                        <input type="range" id="ambient-light-intensity" min="0" max="2" step="0.1" value="0.6">
+                    </div>
+                    <div class="slider-group">
+                        <div class="slider-label"><span>إضاءة شمس (Directional)</span><span id="val-dir-light">1.0</span></div>
+                        <input type="range" id="dir-light-intensity" min="0" max="3" step="0.1" value="1.0">
+                    </div>
+                    <div class="switch-row">
+                        <span>الظلال الحقيقية</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="toggle-shadows" checked>
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                </div>
+            </section>
+
+            <!-- تبويب 4: العناصر -->
+            <section class="tab-pane" id="tab-objects">
+                <h3 class="pane-title"><i class="fa-solid fa-list-ol"></i> قائمة العناصر</h3>
+                <div id="objects-list" class="objects-list-container"></div>
+            </section>
+        </div>
+    </aside>
+
+    <footer class="bottom-hints">
+        <div class="hint-pill"><i class="fa-solid fa-computer-mouse"></i> زر الماوس الأيسر للتحديد والتدوير</div>
+        <div class="hint-pill"><i class="fa-solid fa-arrows-up-down"></i> عجلة الماوس للتقريب</div>
+        <div class="hint-pill"><i class="fa-regular fa-hand"></i> زر الماوس الأيمن للتحريك</div>
+        <div class="hint-pill kbd-hint"><kbd>W</kbd> تحريك</div>
+        <div class="hint-pill kbd-hint"><kbd>E</kbd> تدوير</div>
+        <div class="hint-pill kbd-hint"><kbd>R</kbd> تكبير</div>
+        <div class="hint-pill kbd-hint"><kbd>Del</kbd> حذف</div>
+    </footer>
+
+    <div id="toast-container"></div>
+
+    <!-- مكتبات Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/TransformControls.js"></script>
+
+    <!-- البرمجة التفاعلية بالكامل -->
+    <script>
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color('#0f172a');
+
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(6, 6, 8);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.0;
+        container.appendChild(renderer.domElement);
+
+        const orbitControls = new THREE.OrbitControls(camera, renderer.domElement);
+        orbitControls.enableDamping = true;
+        orbitControls.dampingFactor = 0.05;
+        orbitControls.maxPolarAngle = Math.PI / 2 + 0.1;
+
+        const transformControls = new THREE.TransformControls(camera, renderer.domElement);
+        scene.add(transformControls);
+
+        transformControls.addEventListener('dragging-changed', (event) => {
+            orbitControls.enabled = !event.value;
+        });
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
+        dirLight.position.set(10, 15, 10);
+        dirLight.castShadow = true;
+        dirLight.shadow.mapSize.width = 2048;
+        dirLight.shadow.mapSize.height = 2048;
+        dirLight.shadow.camera.near = 0.5;
+        dirLight.shadow.camera.far = 40;
+        dirLight.shadow.bias = -0.0005;
+        scene.add(dirLight);
+
+        const gridHelper = new THREE.GridHelper(20, 20, 0x3b82f6, 0x334155);
+        scene.add(gridHelper);
+
+        const shadowPlane = new THREE.Mesh(
+            new THREE.PlaneGeometry(50, 50),
+            new THREE.ShadowMaterial({ opacity: 0.25 })
+        );
+        shadowPlane.rotation.x = -Math.PI / 2;
+        shadowPlane.position.y = -0.01;
+        shadowPlane.receiveShadow = true;
+        scene.add(shadowPlane);
+
+        let objectsList = [];
+        let selectedObject = null;
+        let objectCounter = 0;
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        let isPointerMoved = false;
+        let pointerDownPos = { x: 0, y: 0 };
+
+        const shapeNames = {
+            box: 'مكعب', sphere: 'كرة', cylinder: 'أسطوانة',
+            cone: 'مخروط', torus: 'حلقة دونات', crystal: 'بلورة كريستال',
+            capsule: 'كبسولة', plane: 'مسطح'
+        };
+
+        const presetColors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#14b8a6'];
+
+        function createGeometry(type) {
+            switch (type) {
+                case 'box': return new THREE.BoxGeometry(1.5, 1.5, 1.5);
+                case 'sphere': return new THREE.SphereGeometry(1, 32, 32);
+                case 'cylinder': return new THREE.CylinderGeometry(0.8, 0.8, 1.8, 32);
+                case 'cone': return new THREE.ConeGeometry(0.9, 1.8, 32);
+                case 'torus': return new THREE.TorusGeometry(0.9, 0.35, 24, 48);
+                case 'crystal': return new THREE.IcosahedronGeometry(1.1, 0);
+                case 'capsule': return new THREE.CylinderGeometry(0.7, 0.7, 1.6, 32);
+                case 'plane':
+                    const p = new THREE.PlaneGeometry(2, 2);
+                    p.rotateX(-Math.PI / 2);
+                    return p;
+                default: return new THREE.BoxGeometry(1.5, 1.5, 1.5);
+            }
+        }
+
+        function addObject(type) {
+            objectCounter++;
+            const geometry = createGeometry(type);
+            const randomColor = presetColors[objectCounter % presetColors.length];
+
+            const material = new THREE.MeshStandardMaterial({
+                color: new THREE.Color(randomColor),
+                metalness: 0.15,
+                roughness: 0.35,
+                wireframe: false,
+                transparent: true,
+                opacity: 1.0
+            });
+
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+
+            const offsetRadius = Math.min(objectCounter * 0.4, 3.5);
+            const angle = objectCounter * 1.2;
+            mesh.position.set(Math.cos(angle) * offsetRadius, type === 'plane' ? 0.05 : 1.2, Math.sin(angle) * offsetRadius);
+
+            mesh.userData = {
+                id: 'obj_' + Date.now(),
+                name: `${shapeNames[type] || 'مجسم'} #${objectCounter}`,
+                shapeType: type
+            };
+
+            scene.add(mesh);
+            objectsList.push(mesh);
+            selectObject(mesh);
+            updateObjectsCount();
+            updateObjectsListView();
+            showToast(`تمت إضافة ${mesh.userData.name}`, 'success');
+            switchTab('tab-edit');
+        }
+
+        function selectObject(mesh) {
+            if (selectedObject === mesh) return;
+            selectedObject = mesh;
+
+            if (mesh) {
+                transformControls.attach(mesh);
+                updateUIWithSelectedProperties();
+                document.getElementById('no-selection-message').classList.add('hidden');
+                document.getElementById('selection-controls').classList.remove('hidden');
+                document.getElementById('selected-type-badge').textContent = mesh.userData.name;
+            } else {
+                transformControls.detach();
+                document.getElementById('no-selection-message').classList.remove('hidden');
+                document.getElementById('selection-controls').classList.add('hidden');
+            }
+            updateObjectsListView();
+        }
+
+        function deselectObject() { selectObject(null); }
+
+        function updateUIWithSelectedProperties() {
+            if (!selectedObject) return;
+            const mat = selectedObject.material;
+            const hex = '#' + mat.color.getHexString();
+            document.getElementById('object-color').value = hex;
+            document.getElementById('object-color-hex').value = hex.toUpperCase();
+            document.getElementById('prop-metalness').value = mat.metalness;
+            document.getElementById('val-metalness').textContent = mat.metalness.toFixed(2);
+            document.getElementById('prop-roughness').value = mat.roughness;
+            document.getElementById('val-roughness').textContent = mat.roughness.toFixed(2);
+            document.getElementById('prop-opacity').value = mat.opacity;
+            document.getElementById('val-opacity').textContent = mat.opacity.toFixed(2);
+            document.getElementById('prop-wireframe').checked = mat.wireframe;
+            syncTransformInputs();
+        }
+
+        function syncTransformInputs() {
+            if (!selectedObject) return;
+            document.getElementById('pos-x').value = selectedObject.position.x.toFixed(2);
+            document.getElementById('pos-y').value = selectedObject.position.y.toFixed(2);
+            document.getElementById('pos-z').value = selectedObject.position.z.toFixed(2);
+            document.getElementById('scale-x').value = selectedObject.scale.x.toFixed(2);
+            document.getElementById('scale-y').value = selectedObject.scale.y.toFixed(2);
+            document.getElementById('scale-z').value = selectedObject.scale.z.toFixed(2);
+            document.getElementById('rot-x').value = Math.round(THREE.MathUtils.radToDeg(selectedObject.rotation.x));
+            document.getElementById('rot-y').value = Math.round(THREE.MathUtils.radToDeg(selectedObject.rotation.y));
+            document.getElementById('rot-z').value = Math.round(THREE.MathUtils.radToDeg(selectedObject.rotation.z));
+        }
+
+        transformControls.addEventListener('change', () => {
+            if (selectedObject) syncTransformInputs();
+        });
+
+        function deleteSelectedObject() {
+            if (!selectedObject) return;
+            const name = selectedObject.userData.name;
+            const mesh = selectedObject;
+            transformControls.detach();
+            scene.remove(mesh);
+            if (mesh.geometry) mesh.geometry.dispose();
+            if (mesh.material) mesh.material.dispose();
+
+            objectsList = objectsList.filter(o => o !== mesh);
+            selectedObject = null;
+            selectObject(null);
+            updateObjectsCount();
+            updateObjectsListView();
+            showToast(`تم حذف ${name}`, 'danger');
+        }
+
+        function duplicateSelectedObject() {
+            if (!selectedObject) return;
+            objectCounter++;
+            const orig = selectedObject;
+            const cloneMesh = new THREE.Mesh(orig.geometry.clone(), orig.material.clone());
+            cloneMesh.castShadow = true;
+            cloneMesh.receiveShadow = true;
+            cloneMesh.position.copy(orig.position).add(new THREE.Vector3(1, 0, 1));
+            cloneMesh.rotation.copy(orig.rotation);
+            cloneMesh.scale.copy(orig.scale);
+            cloneMesh.userData = {
+                id: 'obj_' + Date.now(),
+                name: `${orig.userData.name} (نسخة)`,
+                shapeType: orig.userData.shapeType
+            };
+            scene.add(cloneMesh);
+            objectsList.push(cloneMesh);
+            selectObject(cloneMesh);
+            updateObjectsCount();
+            updateObjectsListView();
+            showToast('تم نسخ المجسم بنجاح', 'info');
+        }
+
+        function clearAllObjects() {
+            if (objectsList.length === 0) return;
+            if (confirm('هل أنت متأكد من تفريغ المشهد وحذف كل المجسمات؟')) {
+                transformControls.detach();
+                objectsList.forEach(m => {
+                    scene.remove(m);
+                    if (m.geometry) m.geometry.dispose();
+                    if (m.material) m.material.dispose();
+                });
+                objectsList = [];
+                selectObject(null);
+                updateObjectsCount();
+                updateObjectsListView();
+                showToast('تم تفريغ المشهد بالكامل', 'danger');
+            }
+        }
+
+        function updateObjectsCount() {
+            document.getElementById('obj-count').textContent = objectsList.length;
+        }
+
+        function updateObjectsListView() {
+            const listContainer = document.getElementById('objects-list');
+            listContainer.innerHTML = '';
+            if (objectsList.length === 0) {
+                listContainer.innerHTML = '<div class="empty-state"><p>لا توجد مجسمات</p></div>';
+                return;
+            }
+            objectsList.forEach((mesh) => {
+                const item = document.createElement('div');
+                item.className = `obj-item ${selectedObject === mesh ? 'selected' : ''}`;
+                const colorHex = '#' + mesh.material.color.getHexString();
+                item.innerHTML = `
+                    <div class="obj-meta">
+                        <span class="obj-color-dot" style="background-color: ${colorHex}"></span>
+                        <span>${mesh.userData.name}</span>
+                    </div>
+                    <button class="obj-del-btn" title="حذف"><i class="fa-solid fa-trash"></i></button>
+                `;
+                item.addEventListener('click', (e) => {
+                    if (e.target.closest('.obj-del-btn')) {
+                        e.stopPropagation();
+                        selectObject(mesh);
+                        deleteSelectedObject();
+                    } else {
+                        selectObject(mesh);
+                        switchTab('tab-edit');
+                    }
+                });
+                listContainer.appendChild(item);
+            });
+        }
+
+        document.querySelectorAll('.shape-card').forEach(btn => {
+            btn.addEventListener('click', () => addObject(btn.getAttribute('data-shape')));
+        });
+
+        const colorPicker = document.getElementById('object-color');
+        const colorHexInput = document.getElementById('object-color-hex');
+
+        function applyColorToSelected(hex) {
+            if (!selectedObject) return;
+            selectedObject.material.color.set(hex);
+            colorPicker.value = hex;
+            colorHexInput.value = hex.toUpperCase();
+            updateObjectsListView();
+        }
+
+        colorPicker.addEventListener('input', (e) => applyColorToSelected(e.target.value));
+        colorHexInput.addEventListener('change', (e) => {
+            let val = e.target.value.trim();
+            if (!val.startsWith('#')) val = '#' + val;
+            if (/^#[0-9A-F]{6}$/i.test(val)) applyColorToSelected(val);
+        });
+
+        document.querySelectorAll('.swatch').forEach(s => {
+            s.addEventListener('click', () => applyColorToSelected(s.getAttribute('data-color')));
+        });
+
+        document.getElementById('prop-metalness').addEventListener('input', (e) => {
+            if (!selectedObject) return;
+            const val = parseFloat(e.target.value);
+            selectedObject.material.metalness = val;
+            document.getElementById('val-metalness').textContent = val.toFixed(2);
+        });
+
+        document.getElementById('prop-roughness').addEventListener('input', (e) => {
+            if (!selectedObject) return;
+            const val = parseFloat(e.target.value);
+            selectedObject.material.roughness = val;
+            document.getElementById('val-roughness').textContent = val.toFixed(2);
+        });
+
+        document.getElementById('prop-opacity').addEventListener('input', (e) => {
+            if (!selectedObject) return;
+            const val = parseFloat(e.target.value);
+            selectedObject.material.opacity = val;
+            document.getElementById('val-opacity').textContent = val.toFixed(2);
+        });
+
+        document.getElementById('prop-wireframe').addEventListener('change', (e) => {
+            if (!selectedObject) return;
+            selectedObject.material.wireframe = e.target.checked;
+        });
+
+        const gizmoButtons = document.querySelectorAll('.mode-btn');
+        function setGizmoMode(mode) {
+            transformControls.setMode(mode);
+            gizmoButtons.forEach(b => b.classList.toggle('active', b.getAttribute('data-mode') === mode));
+        }
+
+        gizmoButtons.forEach(btn => {
+            btn.addEventListener('click', () => setGizmoMode(btn.getAttribute('data-mode')));
+        });
+
+        ['pos-x', 'pos-y', 'pos-z'].forEach((id, idx) => {
+            document.getElementById(id).addEventListener('input', (e) => {
+                if (!selectedObject) return;
+                selectedObject.position[['x', 'y', 'z'][idx]] = parseFloat(e.target.value) || 0;
+            });
+        });
+
+        ['scale-x', 'scale-y', 'scale-z'].forEach((id, idx) => {
+            document.getElementById(id).addEventListener('input', (e) => {
+                if (!selectedObject) return;
+                selectedObject.scale[['x', 'y', 'z'][idx]] = Math.max(0.01, parseFloat(e.target.value) || 1);
+            });
+        });
+
+        ['rot-x', 'rot-y', 'rot-z'].forEach((id, idx) => {
+            document.getElementById(id).addEventListener('input', (e) => {
+                if (!selectedObject) return;
+                selectedObject.rotation[['x', 'y', 'z'][idx]] = THREE.MathUtils.degToRad(parseFloat(e.target.value) || 0);
+            });
+        });
+
+        document.getElementById('btn-delete-selected').addEventListener('click', deleteSelectedObject);
+        document.getElementById('btn-duplicate-selected').addEventListener('click', duplicateSelectedObject);
+        document.getElementById('btn-clear-scene').addEventListener('click', clearAllObjects);
+
+        const sceneBgPicker = document.getElementById('scene-bg-color');
+        const sceneBgHex = document.getElementById('scene-bg-hex');
+        function setSceneBackground(hex) {
+            scene.background = new THREE.Color(hex);
+            sceneBgPicker.value = hex;
+            sceneBgHex.value = hex.toUpperCase();
+        }
+        sceneBgPicker.addEventListener('input', (e) => setSceneBackground(e.target.value));
+
+        document.getElementById('ambient-light-intensity').addEventListener('input', (e) => {
+            ambientLight.intensity = parseFloat(e.target.value);
+            document.getElementById('val-ambient-light').textContent = ambientLight.intensity.toFixed(1);
+        });
+
+        document.getElementById('dir-light-intensity').addEventListener('input', (e) => {
+            dirLight.intensity = parseFloat(e.target.value);
+            document.getElementById('val-dir-light').textContent = dirLight.intensity.toFixed(1);
+        });
+
+        document.getElementById('toggle-shadows').addEventListener('change', (e) => {
+            renderer.shadowMap.enabled = e.target.checked;
+            dirLight.castShadow = e.target.checked;
+            objectsList.forEach(m => { m.material.needsUpdate = true; });
+        });
+
+        const btnToggleGrid = document.getElementById('btn-toggle-grid');
+        btnToggleGrid.addEventListener('click', () => {
+            gridHelper.visible = !gridHelper.visible;
+            btnToggleGrid.classList.toggle('active', gridHelper.visible);
+        });
+
+        const btnAutoRotate = document.getElementById('btn-auto-rotate');
+        btnAutoRotate.addEventListener('click', () => {
+            orbitControls.autoRotate = !orbitControls.autoRotate;
+            orbitControls.autoRotateSpeed = 2.0;
+            btnAutoRotate.classList.toggle('active', orbitControls.autoRotate);
+        });
+
+        document.getElementById('btn-reset-cam').addEventListener('click', () => {
+            camera.position.set(6, 6, 8);
+            orbitControls.target.set(0, 0, 0);
+            orbitControls.update();
+            showToast('تمت إعادة ضبط موضع الكاميرا', 'info');
+        });
+
+        document.getElementById('btn-screenshot').addEventListener('click', () => {
+            const wasAttached = transformControls.object;
+            if (wasAttached) transformControls.detach();
+            renderer.render(scene, camera);
+            const dataURL = renderer.domElement.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = `3D-Scene-${Date.now()}.png`;
+            link.href = dataURL;
+            link.click();
+            if (wasAttached) transformControls.attach(wasAttached);
+            showToast('تم حفظ لقطة المشهد كصورة بنجاح!', 'success');
+        });
+
+        function switchTab(targetTabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.toggle('active', btn.getAttribute('data-tab') === targetTabId));
+            document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.toggle('active', pane.id === targetTabId));
+        }
+
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => switchTab(btn.getAttribute('data-tab')));
+        });
+
+        window.addEventListener('pointerdown', (e) => {
+            pointerDownPos = { x: e.clientX, y: e.clientY };
+            isPointerMoved = false;
+        });
+
+        window.addEventListener('pointermove', (e) => {
+            if (Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y) > 5) isPointerMoved = true;
+        });
+
+        window.addEventListener('pointerup', (e) => {
+            if (isPointerMoved) return;
+            if (e.target.closest('#sidebar') || e.target.closest('.top-nav') || e.target.closest('.bottom-hints')) return;
+
+            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(objectsList, false);
+
+            if (intersects.length > 0) {
+                selectObject(intersects[0].object);
+                switchTab('tab-edit');
+            } else if (selectedObject) {
+                deselectObject();
+            }
+        });
+
+        window.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT') return;
+            switch (e.key.toLowerCase()) {
+                case 'w': setGizmoMode('translate'); break;
+                case 'e': setGizmoMode('rotate'); break;
+                case 'r': setGizmoMode('scale'); break;
+                case 'delete':
+                case 'backspace': if (selectedObject) deleteSelectedObject(); break;
+                case 'escape': deselectObject(); break;
+                case 'd':
+                    if (e.ctrlKey) { e.preventDefault(); duplicateSelectedObject(); }
+                    break;
+            }
+        });
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            let icon = type === 'success' ? 'fa-circle-check' : (type === 'danger' ? 'fa-circle-exclamation' : 'fa-circle-info');
+            toast.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(10px) scale(0.95)';
+                setTimeout(() => toast.remove(), 250);
+            }, 2500);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        function animate() {
+            requestAnimationFrame(animate);
+            orbitControls.update();
+            renderer.render(scene, camera);
+        }
+
+        addObject('box');
+        addObject('sphere');
+        if (objectsList.length > 0) selectObject(objectsList[0]);
+        animate();
+    </script>
+</body>
+</html>
